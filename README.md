@@ -14,8 +14,8 @@
 
 ## ติดตั้ง
 ```bash
-curl -fsSL https://raw.githubusercontent.com/AnonymousVS/WP-Toolkit-CleanUP/main/wp-cleanup-auto.sh -o /root/wp-cleanup-auto.sh && bash /root/wp-cleanup-auto.sh
-```
+curl -fsSL https://raw.githubusercontent.com/AnonymousVS/WP-Toolkit-CleanUP/main/wp-cleanup-auto.sh \
+  -o /usr/local/sbin/wp-cleanup-auto.sh && bash /usr/local/sbin/wp-cleanup-auto.sh```
 
 ## รันด้วยตัวเอง
 ```bash

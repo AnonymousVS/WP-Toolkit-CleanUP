@@ -70,19 +70,39 @@ cleanup_site() {
 export -f cleanup_site
 
 (
-  {
-    # แบบที่ 2: /home/USER/public_html/DOMAIN/
-    find /home*/*/public_html -maxdepth 2 -name "wp-config.php" 2>/dev/null
+  # ดึง main domain ออกก่อน
+  MAIN_DOMAINS=$(awk -F': ' '{print $1}' /etc/trueuserdomains | sed 's/ //g')
 
-    # แบบที่ 1: /home/USER/DOMAIN/
-    find /home* -maxdepth 3 -name "wp-config.php" 2>/dev/null \
-      | grep -v "/public_html/"
-  } | sort -u \
-    | while read cfg; do
-        WP_PATH=$(dirname "$cfg")
-        [ -f "$WP_PATH/$FLAG" ] && continue
-        echo "$WP_PATH"
+  grep -v "\.cp:" /etc/userdomains \
+    | grep -v "nobody" \
+    | grep -v "\*" \
+    | while IFS=': ' read -r domain user; do
+        domain=$(echo "$domain" | tr -d ' ')
+        user=$(echo "$user" | tr -d ' ')
+
+        # ข้าม main domain
+        echo "$MAIN_DOMAINS" | grep -qx "$domain" && continue
+
+        # ข้าม subdomain ของ cPanel
+        echo "$MAIN_DOMAINS" | while read -r md; do
+          echo "$domain" | grep -q "\.${md}$" && echo "SKIP" && break
+        done | grep -q "SKIP" && continue
+
+        # หา wp-config.php ทั้งสองแบบ path
+        # แบบที่ 1: /home/USER/DOMAIN/
+        # แบบที่ 2: /home/USER/public_html/DOMAIN/
+        for wp_config in \
+          "/home/$user/$domain/wp-config.php" \
+          "/home/$user/public_html/$domain/wp-config.php"; do
+          if [ -f "$wp_config" ]; then
+            WP_PATH=$(dirname "$wp_config")
+            [ -f "$WP_PATH/$FLAG" ] && continue
+            echo "$WP_PATH"
+          fi
+        done
+
       done \
+    | sort -u \
     | xargs -P "$PARALLEL_JOBS" -I{} bash -c \
       'cleanup_site "$@"' _ {} "$FLAG" "$LOG"
 ) &

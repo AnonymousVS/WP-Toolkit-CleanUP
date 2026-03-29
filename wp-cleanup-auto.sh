@@ -1,3 +1,4 @@
+cat > /root/wp-cleanup-auto.sh << 'ENDOFSCRIPT'
 #!/bin/bash
 # WP-Toolkit-CleanUP by AnonymousVS
 # https://github.com/AnonymousVS/WP-Toolkit-CleanUP
@@ -6,7 +7,6 @@ FLAG=".wp-cleanup-done"
 LOG="/var/log/wp-cleanup.log"
 PARALLEL_JOBS=8
 
-# ── SETUP ──
 chmod +x "$0"
 
 if ! crontab -l 2>/dev/null | grep -q "wp-cleanup-auto.sh"; then
@@ -14,7 +14,6 @@ if ! crontab -l 2>/dev/null | grep -q "wp-cleanup-auto.sh"; then
   echo "Cron added: runs daily at 01:00"
 fi
 
-# ── LOGROTATE ──
 if [ ! -f /etc/logrotate.d/wp-cleanup ]; then
   cat > /etc/logrotate.d/wp-cleanup << 'EOF'
 /var/log/wp-cleanup.log {
@@ -28,7 +27,6 @@ EOF
   echo "Logrotate configured"
 fi
 
-# ── SPINNER ──
 spinner() {
   local pid=$1
   local delay=0.1
@@ -46,7 +44,6 @@ spinner() {
   printf "\r✅ Done! Total cleaned: %s sites\n" "$total"
 }
 
-# ── CLEANUP ──
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] === START ===" >> "$LOG"
 
 cleanup_site() {
@@ -89,18 +86,6 @@ spinner $CLEANUP_PID
 wait $CLEANUP_PID
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] === DONE ===" >> "$LOG"
-```
+ENDOFSCRIPT
 
----
-
-### ที่เปลี่ยน
-
-| รายการ | เดิม | ใหม่ |
-|--------|------|------|
-| `PARALLEL_JOBS` | 4 | 8 |
-| Spinner | ไม่มี | หมุน + นับไซต์ realtime |
-
-### ตัวอย่างที่เห็นตอนรัน
-```
-⠹ Processing... cleaned: 142 sites
-✅ Done! Total cleaned: 1,847 sites
+chmod +x /root/wp-cleanup-auto.sh

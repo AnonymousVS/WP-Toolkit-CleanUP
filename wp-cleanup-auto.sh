@@ -50,7 +50,12 @@ cleanup_site() {
   local FLAG="$2"
   local LOG="$3"
 
-  wp plugin delete akismet hello \
+  wp plugin delete \
+    akismet hello \
+    All-In-One-WP-Migration-With-Import-master \
+    imunify-security \
+    malcare-security \
+    sucuri-scanner \
     --path="$WP_PATH" --allow-root --quiet \
     --skip-plugins --skip-themes >/dev/null 2>&1
 
@@ -70,7 +75,6 @@ cleanup_site() {
 export -f cleanup_site
 
 (
-  # ดึง main domain ออกก่อน
   MAIN_DOMAINS=$(awk -F': ' '{print $1}' /etc/trueuserdomains | sed 's/ //g')
 
   grep -v "\.cp:" /etc/userdomains \
@@ -83,14 +87,12 @@ export -f cleanup_site
         # ข้าม main domain
         echo "$MAIN_DOMAINS" | grep -qx "$domain" && continue
 
-        # ข้าม subdomain ของ cPanel
+        # ข้าม cPanel internal subdomain
         echo "$MAIN_DOMAINS" | while read -r md; do
           echo "$domain" | grep -q "\.${md}$" && echo "SKIP" && break
         done | grep -q "SKIP" && continue
 
-        # หา wp-config.php ทั้งสองแบบ path
-        # แบบที่ 1: /home/USER/DOMAIN/
-        # แบบที่ 2: /home/USER/public_html/DOMAIN/
+        # หา wp-config.php ทั้ง 2 path
         for wp_config in \
           "/home/$user/$domain/wp-config.php" \
           "/home/$user/public_html/$domain/wp-config.php"; do

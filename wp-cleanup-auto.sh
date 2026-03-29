@@ -52,16 +52,16 @@ cleanup_site() {
 
   wp plugin delete akismet hello \
     --path="$WP_PATH" --allow-root --quiet \
-    --skip-plugins --skip-themes 2>/dev/null
+    --skip-plugins --skip-themes >/dev/null 2>&1
 
   wp theme delete \
     twentytwentythree twentytwentyfour twentytwentytwo twentytwentyone twentytwenty \
     --path="$WP_PATH" --allow-root --quiet \
-    --skip-plugins --skip-themes 2>/dev/null
+    --skip-plugins --skip-themes >/dev/null 2>&1
 
   wp config set CORE_UPGRADE_SKIP_NEW_BUNDLED true \
     --raw --path="$WP_PATH" --allow-root --quiet \
-    --skip-plugins --skip-themes 2>/dev/null
+    --skip-plugins --skip-themes >/dev/null 2>&1
 
   touch "$WP_PATH/$FLAG"
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleaned: $WP_PATH" >> "$LOG"

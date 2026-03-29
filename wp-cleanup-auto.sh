@@ -4,7 +4,7 @@
 
 FLAG=".wp-cleanup-done"
 LOG="/var/log/wp-cleanup.log"
-PARALLEL_JOBS=4
+PARALLEL_JOBS=8
 
 # ── SETUP ──
 chmod +x "$0"
@@ -27,6 +27,24 @@ if [ ! -f /etc/logrotate.d/wp-cleanup ]; then
 EOF
   echo "Logrotate configured"
 fi
+
+# ── SPINNER ──
+spinner() {
+  local pid=$1
+  local delay=0.1
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local i=0
+  while kill -0 "$pid" 2>/dev/null; do
+    local count=0
+    [ -f "$LOG" ] && count=$(grep -c "Cleaned:" "$LOG" 2>/dev/null || echo 0)
+    printf "\r${frames[$i]} Processing... cleaned: %s sites" "$count"
+    i=$(( (i+1) % ${#frames[@]} ))
+    sleep $delay
+  done
+  local total=0
+  [ -f "$LOG" ] && total=$(grep -c "Cleaned:" "$LOG" 2>/dev/null || echo 0)
+  printf "\r✅ Done! Total cleaned: %s sites\n" "$total"
+}
 
 # ── CLEANUP ──
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] === START ===" >> "$LOG"
@@ -55,13 +73,34 @@ cleanup_site() {
 
 export -f cleanup_site
 
-find /home*/*/public_html -maxdepth 3 -name "wp-config.php" 2>/dev/null \
-  | while read cfg; do
-      WP_PATH=$(dirname "$cfg")
-      [ -f "$WP_PATH/$FLAG" ] && continue
-      echo "$WP_PATH"
-    done \
-  | xargs -P "$PARALLEL_JOBS" -I{} bash -c \
-    'cleanup_site "$@"' _ {} "$FLAG" "$LOG"
+(
+  find /home*/*/public_html -maxdepth 3 -name "wp-config.php" 2>/dev/null \
+    | while read cfg; do
+        WP_PATH=$(dirname "$cfg")
+        [ -f "$WP_PATH/$FLAG" ] && continue
+        echo "$WP_PATH"
+      done \
+    | xargs -P "$PARALLEL_JOBS" -I{} bash -c \
+      'cleanup_site "$@"' _ {} "$FLAG" "$LOG"
+) &
+
+CLEANUP_PID=$!
+spinner $CLEANUP_PID
+wait $CLEANUP_PID
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] === DONE ===" >> "$LOG"
+```
+
+---
+
+### ที่เปลี่ยน
+
+| รายการ | เดิม | ใหม่ |
+|--------|------|------|
+| `PARALLEL_JOBS` | 4 | 8 |
+| Spinner | ไม่มี | หมุน + นับไซต์ realtime |
+
+### ตัวอย่างที่เห็นตอนรัน
+```
+⠹ Processing... cleaned: 142 sites
+✅ Done! Total cleaned: 1,847 sites

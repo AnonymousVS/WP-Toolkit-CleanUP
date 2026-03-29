@@ -9,7 +9,7 @@ PARALLEL_JOBS=8
 chmod +x "$0"
 
 if ! crontab -l 2>/dev/null | grep -q "wp-cleanup-auto.sh"; then
-  (crontab -l 2>/dev/null; echo "0 1 * * * /usr/bin/flock -n /tmp/wp-cleanup.lock /root/wp-cleanup-auto.sh") | crontab -
+  (crontab -l 2>/dev/null; echo "0 1 * * * /usr/bin/flock -n /tmp/wp-cleanup.lock /usr/local/sbin/wp-cleanup-auto.sh") | crontab -
   echo "Cron added: runs daily at 01:00"
 fi
 

@@ -70,7 +70,14 @@ cleanup_site() {
 export -f cleanup_site
 
 (
-  find /home*/*/public_html -maxdepth 3 -name "wp-config.php" 2>/dev/null \
+  {
+    # แบบที่ 2: /home/USER/public_html/DOMAIN/
+    find /home*/*/public_html -maxdepth 2 -name "wp-config.php" 2>/dev/null
+
+    # แบบที่ 1: /home/USER/DOMAIN/
+    find /home* -maxdepth 3 -name "wp-config.php" 2>/dev/null \
+      | grep -v "/public_html/"
+  } | sort -u \
     | while read cfg; do
         WP_PATH=$(dirname "$cfg")
         [ -f "$WP_PATH/$FLAG" ] && continue

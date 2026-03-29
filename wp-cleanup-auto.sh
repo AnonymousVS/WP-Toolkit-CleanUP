@@ -1,4 +1,3 @@
-cat > /root/wp-cleanup-auto.sh << 'ENDOFSCRIPT'
 #!/bin/bash
 # WP-Toolkit-CleanUP by AnonymousVS
 # https://github.com/AnonymousVS/WP-Toolkit-CleanUP
@@ -86,6 +85,3 @@ spinner $CLEANUP_PID
 wait $CLEANUP_PID
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] === DONE ===" >> "$LOG"
-ENDOFSCRIPT
-
-chmod +x /root/wp-cleanup-auto.sh

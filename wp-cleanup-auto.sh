@@ -31,15 +31,18 @@ spinner() {
   local delay=0.1
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local i=0
+  local start_line
+  start_line=$(wc -l < "$LOG" 2>/dev/null || echo 0)
+
   while kill -0 "$pid" 2>/dev/null; do
     local count=0
-    [ -f "$LOG" ] && count=$(grep -c "Cleaned:" "$LOG" 2>/dev/null || echo 0)
+    [ -f "$LOG" ] && count=$(tail -n +"$start_line" "$LOG" 2>/dev/null | grep -c "Cleaned:" || echo 0)
     printf "\r${frames[$i]} Processing... cleaned: %s sites" "$count"
     i=$(( (i+1) % ${#frames[@]} ))
     sleep $delay
   done
   local total=0
-  [ -f "$LOG" ] && total=$(grep -c "Cleaned:" "$LOG" 2>/dev/null || echo 0)
+  [ -f "$LOG" ] && total=$(tail -n +"$start_line" "$LOG" 2>/dev/null | grep -c "Cleaned:" || echo 0)
   printf "\r✅ Done! Total cleaned: %s sites\n" "$total"
 }
 
